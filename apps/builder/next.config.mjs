@@ -58,6 +58,14 @@ const nextConfig = {
           .join(" ")
       : null;
 
+    // In dev mode all origins are allowed; in production use the explicit list.
+    const iframeAllowed = isDev || extraFrameAncestors !== null;
+    const frameAncestorsValue = isDev
+      ? "frame-ancestors *"
+      : extraFrameAncestors
+        ? `frame-ancestors 'self' ${extraFrameAncestors}`
+        : "frame-ancestors 'self'";
+
     const securityHeaders = [
       {
         key: "X-Content-Type-Options",
@@ -78,14 +86,12 @@ const nextConfig = {
           `media-src 'self' blob: https:${isDev ? " http://localhost:* " : ""}`,
           "worker-src 'self' blob:",
           "object-src 'none'",
-          extraFrameAncestors
-            ? `frame-ancestors 'self' ${extraFrameAncestors}`
-            : "frame-ancestors 'self'",
+          frameAncestorsValue,
         ].join("; "),
       },
     ];
 
-    if (!extraFrameAncestors) {
+    if (!iframeAllowed) {
       securityHeaders.unshift({
         key: "X-Frame-Options",
         value: "SAMEORIGIN",
